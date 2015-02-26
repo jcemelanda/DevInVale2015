@@ -1,6 +1,7 @@
 from os.path import join
 
 import pygame
+from pygame.constants import KMOD_CTRL, K_r
 
 from pygame.locals import KMOD_ALT
 
@@ -13,7 +14,7 @@ from pygame.locals import K_F4
 
 from pygame.locals import QUIT
 from pygame.sprite import GroupSingle, spritecollideany, groupcollide, Group
-from sprites import Ship, AsteroidGroup, ShipGroup, ScoreSprite
+from sprites import Ship, AsteroidGroup, ShipGroup, ScoreSprite, ExplodingAsteroidsGroup
 
 
 __author__ = 'julio'
@@ -31,7 +32,6 @@ class UserInput:
         self.quit_pressed = False
         self.space_pressed = False
 
-
     def reset(self):
         self.set()
 
@@ -47,10 +47,9 @@ class Game:
 
     def config(self):
         self.clock = pygame.time.Clock()
-        self.elements = []
+        self.elements = {}
         self.input = UserInput()
         self.ship_collides = []
-
 
     def _init_font(self):
         pygame.font.init()
@@ -64,8 +63,9 @@ class Game:
 
     def _init_sound(self):
         pygame.mixer.pre_init(44100, 32, 2, 4096)
-        self.explosion_sound = pygame.mixer.Sound(join('sfx', 'boom.wav'))
-        self.explosion_played = False
+        self.explosion_sound = pygame.mixer.Sound(join('sfx', 'boom.ogg'))
+        self.laser_sound = pygame.mixer.Sound(join('sfx', 'laser.ogg'))
+        self.background_sound = pygame.mixer.Sound(join('sfx', 'background.ogg'))
 
     def player_input(self):
         self.input.reset()
@@ -90,42 +90,48 @@ class Game:
             if pressed_keys[K_F4]:
                 self.input.quit_pressed = True
 
+        if pressed_mods and KMOD_CTRL:
+            if pressed_keys[K_r]:
+                if self.game_over:
+                    self.restart()
+
     def events(self):
         for event in pygame.event.get():
             if event.type == QUIT:
                 self.input.quit_pressed = True
 
     def update(self):
-        for element in self.elements:
+        for element in self.elements.values():
             element.update()
 
     def draw(self):
         self.screen.blit(self.background, (0, 0))
-        for element in self.elements:
+        for element in self.elements.values():
             element.draw(self.screen)
         pygame.display.update()
 
     def detect_collision(self):
-        if self.elements[-1].sprite:
-            self.ship_collides = spritecollideany(self.elements[-1].sprite, self.elements[-2])
+        if self.elements['ship'].sprite:
+            self.ship_collides = spritecollideany(self.elements['ship'].sprite, self.elements['asteroids'])
 
-        if groupcollide(self.elements[-3], self.elements[-2], True, True):
+        if groupcollide(self.elements['lasers'], self.elements['asteroids'], True, True):
             self.score_add(50)
-
 
     def score_add(self, value):
         self.score += value
 
-
-
     def run(self):
+        self.background_sound.set_volume(0.3)
+        self.background_sound.play(loops=-1)
         background_filename = join('gfx', 'bg_big.png')
         self.background = pygame.image.load(background_filename).convert()
 
-        self.elements.append(GroupSingle(ScoreSprite(self)))
-        self.elements.append(Group())
-        self.elements.append(AsteroidGroup(join('gfx', 'asteroid.png')))
-        self.elements.append(ShipGroup(sprite=Ship(join('gfx', 'ship.png'), 48, 48, self)))
+        self.elements['score'] = GroupSingle(ScoreSprite(self))
+        self.elements['exploding_asteroids'] = ExplodingAsteroidsGroup()
+        self.elements['lasers'] = Group()
+        self.elements['asteroids'] = AsteroidGroup(join('gfx', 'asteroid.png'), self)
+        self.elements['ship'] = ShipGroup(sprite=Ship(join('gfx', 'ship.png'), 48, 48, self))
+
 
 
         while True:
@@ -139,6 +145,10 @@ class Game:
             self.detect_collision()
             time_passed = self.clock.tick(30)
 
+    def restart(self):
+        self.background_sound.stop()
+        self.__init__()
+        self.run()
 
 
 if __name__ == '__main__':
