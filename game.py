@@ -15,7 +15,7 @@ from pygame.locals import K_F4
 from pygame.locals import QUIT
 from pygame.sprite import GroupSingle, spritecollideany, groupcollide, Group
 from sprites import Ship, AsteroidGroup, ShipGroup, ScoreSprite, ExplodingAsteroidsGroup
-
+from db import DB
 
 __author__ = 'julio'
 
@@ -44,6 +44,7 @@ class Game:
         self._init_font()
         self._init_sound()
         self.game_over = False
+        self.db = DB('game.db')
 
     def config(self):
         self.clock = pygame.time.Clock()
