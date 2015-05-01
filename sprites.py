@@ -9,7 +9,7 @@ __author__ = 'julio'
 
 class Ship(Sprite):
     def __init__(self, img_name, width, height, game):
-        super().__init__()
+        super(Ship, self).__init__()
 
         self.image = pygame.image.load(img_name).convert_alpha()
         self.rect = Rect(454, 516, width, height)
@@ -49,7 +49,7 @@ class Ship(Sprite):
 
 class ExplodingSprite(Sprite):
     def __init__(self, img_name, rect, sprite_count, game):
-        super().__init__()
+        super(ExplodingSprite, self).__init__()
 
         self.image = pygame.image.load(img_name).convert_alpha()
         self.rect = self.image.get_rect()
@@ -93,7 +93,7 @@ class ShipGroup(GroupSingle):
 
 class Asteroid(Sprite):
     def __init__(self, img_name, width, height, game):
-        super().__init__()
+        super(Asteroid, self).__init__()
 
         self.image = pygame.image.load(img_name).convert_alpha()
         self.rect = Rect(randrange(956-width), -100, width, height)
@@ -111,7 +111,7 @@ class Asteroid(Sprite):
                                                     self.rect,
                                                     4,
                                                     self.game))
-        super().kill()
+        super(Asteroid, self).kill()
 
 
 class AnimatedAsteroid(ExplodingSprite):
@@ -140,7 +140,7 @@ class ExplodingAsteroidsGroup(Group):
 
 class AsteroidGroup(Group):
     def __init__(self, img_name, game, *sprites):
-        super().__init__(*sprites)
+        super(AsteroidGroup, self).__init__(*sprites)
         self.img_name = img_name
         self.new_asteroid_countdown = 10
         self.game = game
@@ -151,14 +151,14 @@ class AsteroidGroup(Group):
             self.add(Asteroid(self.img_name, 64, 64, self.game))
             self.new_asteroid_countdown = 10
 
-        super().update(*args)
+        super(AsteroidGroup, self).update(*args)
 
 
 class TextSprite(Sprite):
     def __init__(self, text, game):
         self.image = game.game_font.render(text, 1, (255, 0, 0))
         self.rect = self.image.get_rect().move(335, 250)
-        super().__init__()
+        super(TextSprite, self).__init__()
 
 
 class ScoreSprite(Sprite):
@@ -171,10 +171,10 @@ class ScoreSprite(Sprite):
         self.rect = self.image.get_rect().move(15, 15)
         self.game = game
         self.score_countdown = 10
-        super().__init__()
+        super(ScoreSprite, self).__init__()
 
     def update(self, *args):
-        super().update()
+        super(ScoreSprite, self).update()
         if not self.game.game_over:
             if self.score_countdown:
                 self.game.score += 1
@@ -188,8 +188,8 @@ class LaserSprite(Sprite):
     def __init__(self, img_name, rect, game):
         self.image = pygame.image.load(img_name).convert_alpha()
         self.rect = Rect(rect.centerx, rect.y, 2, 9)
-        super().__init__()
+        super(LaserSprite, self).__init__()
 
     def update(self, *args):
-        super().update()
+        super(LaserSprite, self).update()
         self.rect = self.rect.move(0, -20)
